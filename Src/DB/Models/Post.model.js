@@ -27,5 +27,8 @@ const PostSchema = new Schema(
   { timestamps: true }
 );
 
+// Text index for search functionality
+PostSchema.index({ content: "text", tags: "text" });
+
 export const PostModel =
   mongoose.models.Post || mongoose.model("Post", PostSchema);

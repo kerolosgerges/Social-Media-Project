@@ -68,9 +68,22 @@ const UserSchema = new Schema(
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
+    isOnline: { type: Boolean, default: false },
+    lastSeen: { type: Date, default: Date.now },
+    pushSubscriptions: [{
+      endpoint: { type: String, required: true },
+      keys: {
+        p256dh: { type: String, required: true },
+        auth: { type: String, required: true }
+      },
+      createdAt: { type: Date, default: Date.now }
+    }],
   },
   { timestamps: true }
 );
+
+// Text index for search functionality
+UserSchema.index({ username: "text", email: "text" });
 
 export const UserModel =
   mongoose.models.User || mongoose.model("User", UserSchema);
