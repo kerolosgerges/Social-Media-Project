@@ -1,13 +1,13 @@
 import express from "express";
 import * as commentController from "./comment.controller.js";
-import { authenticate } from "../../Middleware/Authentication.middleware.js";
 import { validate } from "../../Middleware/validation.middleware.js";
 import { commentSchema } from "./Validators/comment.schema.js";
+import { authMiddleware } from "../../Middleware/Authentication.middleware.js";
 
 const router = express.Router();
 
 // Apply authentication middleware to all comment routes
-router.use(authenticate);
+router.use(authMiddleware)
 
 // Create a new comment
 router.post("/", validate(commentSchema.createComment), commentController.createComment);
