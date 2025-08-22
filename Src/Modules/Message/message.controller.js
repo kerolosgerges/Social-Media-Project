@@ -6,7 +6,9 @@ import {
   getChatHistory,
   getConversations,
   markMessageAsRead,
-  deleteMessage
+  deleteMessage,
+  markMessageAsSeen,
+  markConversationAsSeen
 } from "./Services/message.service.js";
 import { validateSchema } from "../../Middleware/validation.middleware.js";
 import { sendMessageSchema } from "./Validators/message.schema.js";

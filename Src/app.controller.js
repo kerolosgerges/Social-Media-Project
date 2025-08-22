@@ -3,8 +3,6 @@ import dotenv from "dotenv";
 import path from "node:path";
 import database_connection from "./DB/connection.js";
 import cors from "cors";
-import { createServer } from "http";
-import { Server } from "socket.io";
 import { authRoutes } from "./Modules/Auth/auth.controller.js";
 import { userRoutes } from "./Modules/User/user.controller.js";
 import { postRoutes } from "./Modules/Post/post.route.js";
@@ -18,6 +16,9 @@ import { messageRoutes } from "./Modules/Message/message.controller.js";
 import { notificationRoutes } from "./Modules/Notification/notification.controller.js";
 import { pushNotificationRoutes } from "./Modules/Notification/pushNotification.controller.js";
 import { userStatusRoutes } from "./Modules/User/userStatus.controller.js";
+
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 dotenv.config({ path: path.resolve("Src/Config/.env.dev") });
 
@@ -53,6 +54,7 @@ app.use("/api/users", userStatusRoutes);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",
+    // origin : "*",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -61,20 +63,21 @@ const io = new Server(server, {
 // Socket.IO authentication middleware
 io.use(async (socket, next) => {
   try {
-    const token = socket.handshake.auth.token || socket.handshake.headers.authorization;
+    const token =
+      socket.handshake.auth.token || socket.handshake.headers.authorization;
     if (!token) {
       return next(new Error("Authentication error: No token provided"));
     }
 
-    // Import JWT verification function
-    const { verifyToken } = await import("./Modules/Auth/Services/auth.service.js");
+    const { verifyToken } = await import(
+      "./Modules/Auth/Services/auth.service.js"
+    );
     const decoded = await verifyToken(token.replace("Bearer ", ""));
-    
+
     if (!decoded) {
       return next(new Error("Authentication error: Invalid token"));
     }
 
-    // Attach user data to socket
     socket.userId = decoded._id;
     socket.user = decoded;
     next();
@@ -92,7 +95,7 @@ io.on("connection", async (socket) => {
     const { UserModel } = await import("./DB/Models/User.model.js");
     await UserModel.findByIdAndUpdate(socket.userId, {
       isOnline: true,
-      lastSeen: new Date()
+      lastSeen: new Date(),
     });
 
     // Join user to their personal room
@@ -102,18 +105,18 @@ io.on("connection", async (socket) => {
     socket.broadcast.emit("user_status_change", {
       userId: socket.userId,
       status: "online",
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     // Handle disconnection
     socket.on("disconnect", async () => {
       console.log(`User ${socket.userId} disconnected`);
-      
+
       try {
         // Update user's offline status
         await UserModel.findByIdAndUpdate(socket.userId, {
           isOnline: false,
-          lastSeen: new Date()
+          lastSeen: new Date(),
         });
 
         // Broadcast offline status to followers
@@ -121,7 +124,7 @@ io.on("connection", async (socket) => {
           userId: socket.userId,
           status: "offline",
           lastSeen: new Date(),
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       } catch (error) {
         console.error("Error updating offline status:", error);
@@ -129,9 +132,11 @@ io.on("connection", async (socket) => {
     });
 
     // Import and initialize socket handlers
-    import("./Modules/Socket/socket.handler.js").then(({ initializeSocketHandlers }) => {
-      initializeSocketHandlers(io, socket);
-    });
+    import("./Modules/Socket/socket.handler.js").then(
+      ({ initializeSocketHandlers }) => {
+        initializeSocketHandlers(io, socket);
+      }
+    );
   } catch (error) {
     console.error("Error handling socket connection:", error);
     socket.disconnect();
@@ -139,17 +144,23 @@ io.on("connection", async (socket) => {
 });
 
 // Set Socket.IO instance in services that need it
-import("./Modules/Message/Services/message.service.js").then(({ setSocketIO }) => {
-  setSocketIO(io);
-});
+import("./Modules/Message/Services/message.service.js").then(
+  ({ setSocketIO }) => {
+    setSocketIO(io);
+  }
+);
 
-import("./Modules/Reaction/Services/reaction.service.js").then(({ setSocketIO }) => {
-  setSocketIO(io);
-});
+import("./Modules/Reaction/Services/reaction.service.js").then(
+  ({ setSocketIO }) => {
+    setSocketIO(io);
+  }
+);
 
-import("./Modules/Follow/Services/follow.service.js").then(({ setSocketIO }) => {
-  setSocketIO(io);
-});
+import("./Modules/Follow/Services/follow.service.js").then(
+  ({ setSocketIO }) => {
+    setSocketIO(io);
+  }
+);
 
 const bootstrapFunction = () => {
   database_connection();

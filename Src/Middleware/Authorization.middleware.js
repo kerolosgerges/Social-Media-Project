@@ -7,19 +7,18 @@ export function authorizeRoles(...allowedRoles) {
       }
 
       if (!allowedRoles.includes(user.role)) {
-        return res
-          .status(401)
-          .json({ error: "Access denied. You don't have permission" });
+        return res.status(401).json({
+          status: "failure",
+          message: "Access denied. You don't have permission",
+        });
       }
       next();
     } catch (err) {
-      return res
-        .status(500)
-        .json({
-          error: "Internal server error",
-          message: err.message,
-          stack: process.env.MOOD === "production" ? null : err.stack,
-        });
+      return res.status(500).json({
+        error: "Internal server error",
+        message: err.message,
+        stack: process.env.MOOD === "production" ? null : err.stack,
+      });
     }
   };
 }

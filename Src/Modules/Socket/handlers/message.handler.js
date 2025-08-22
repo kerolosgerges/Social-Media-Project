@@ -78,7 +78,7 @@ export const initializeMessageHandlers = (io, socket, checkRateLimit) => {
     if (!checkRateLimit(socket, "message_read", 20, 60000)) {
       return socket.emit("error", { message: "Rate limit exceeded for read confirmations" });
     }
-
+  
     try {
       const { messageId } = data;
 

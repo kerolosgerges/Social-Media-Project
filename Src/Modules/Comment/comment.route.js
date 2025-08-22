@@ -1,8 +1,8 @@
 import express from "express";
 import * as commentController from "./comment.controller.js";
-import { validate } from "../../Middleware/validation.middleware.js";
 import { commentSchema } from "./Validators/comment.schema.js";
 import { authMiddleware } from "../../Middleware/Authentication.middleware.js";
+import { validateSchema } from "../../Middleware/validation.middleware.js";
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const router = express.Router();
 router.use(authMiddleware)
 
 // Create a new comment
-router.post("/", validate(commentSchema.createComment), commentController.createComment);
+router.post("/", validateSchema(commentSchema.createComment), commentController.createComment);
 
 // Get all comments for a post
 router.get("/post/:postId", commentController.getCommentsByPost);
@@ -19,7 +19,7 @@ router.get("/post/:postId", commentController.getCommentsByPost);
 router.get("/:commentId", commentController.getCommentById);
 
 // Update a comment
-router.put("/:commentId", validate(commentSchema.updateComment), commentController.updateComment);
+router.put("/:commentId", validateSchema(commentSchema.updateComment), commentController.updateComment);
 
 // Delete a comment
 router.delete("/:commentId", commentController.deleteComment);
